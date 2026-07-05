@@ -28,20 +28,26 @@ const doLaundry = () => {
 const doDishes = () => {
   const startTime = Date.now();
   console.log("doDishes function called");
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       const endTime = Date.now();
       console.log("Dishes finished in: " + (endTime - startTime));
-      resolve('Dishes are done!');
+      reject(new Error('Dishes are not done!'));
+      //reject('Dishes are not done!');
     }, 3000);
   });
 };
 
 test('runs in Playwright', async () => {
-  await getCoffee();
-  await doLaundry();
-  await doDishes();
-  const results = await Promise.all([getCoffee(), doLaundry(), doDishes()]);
-  console.log(results);
+  // await getCoffee();
+  // await doLaundry();
+  // await doDishes();
+  try {
+    const results = await Promise.all([getCoffee(), doLaundry(), doDishes()]);
+    console.log(results);
+  } 
+  catch (error) {
+    console.log("Flow failed: " + error.stack);
+  }
 });
 
