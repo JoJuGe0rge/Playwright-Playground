@@ -11,9 +11,8 @@ class LoginPage {
     this.page = page;
     this.userName_Locator = page.locator('#user-name');
     this.password_Locator = page.locator('#password');
-    this.loginButton_Locator = page.locator('#login-button');
+    this.loginButton_Locator = page.getByRole('button', { name: 'Login' });
   }
-
 
   async login(username: string, password: string)
   {
@@ -24,4 +23,5 @@ class LoginPage {
   }
 }
 
-export default LoginPage;
+
+export { LoginPage as default };
