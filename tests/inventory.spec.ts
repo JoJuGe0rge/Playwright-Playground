@@ -7,6 +7,8 @@ test('add product to cart', async ({ page }) => {
   await loginPage.login('standard_user', 'secret_sauce');
   const inventoryPage = new InventoryPage(page);
   await inventoryPage.addToCart('Sauce Labs Backpack');
-  await page.waitForTimeout(8000);
+  //const cartCount = await inventoryPage.getCartCount();
+  //await expect(cartCount).toBe('1');
+  expect(await inventoryPage.getCartCount()).toBe('2');
 });
 
