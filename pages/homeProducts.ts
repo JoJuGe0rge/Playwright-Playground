@@ -1,7 +1,11 @@
 import type { Page } from '@playwright/test';
 
 class InventoryPage {
-  constructor(private page: Page) {}
+  private sort_Locator: ReturnType<Page['locator']>;
+
+  constructor(private page: Page) {
+    this.sort_Locator = this.page.locator('[data-test="product-sort-container"]');
+  }
 
   async addToCart(productName: string) {
     const tile = this.page.locator('[data-test="inventory-item"]').filter({ hasText: productName });
@@ -13,9 +17,7 @@ class InventoryPage {
   }
 
   async sortProductsBy(sortOption: string) {
-    const sort_Locator = this.page.locator('[data-test="product-sort-container"]');
-    await sort_Locator.selectOption(sortOption);
-
+    await this.sort_Locator.selectOption(sortOption);
   }
 
   private getTileByIndex(n: number) {

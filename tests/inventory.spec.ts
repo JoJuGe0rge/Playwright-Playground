@@ -22,5 +22,21 @@ test('sort products by name', async ({ page }) => {
   const secondProductPrice = await inventoryPage.getNthProductPrice(1);
   console.log('Second product price:', secondProductPrice);
   await expect(firstProductPrice).toBeLessThan(secondProductPrice);
-}); 
-  
+});
+
+
+test('javascript popup test', async ({ page }) => {
+  page.on('dialog', async(dialog) => {
+    console.log(`Dialog message: ${dialog.message()}`);
+    await dialog.accept();
+  });
+});
+
+
+test('new tab openedv test', async ({ page }) => {
+  await Promise.all([
+    page.waitForEvent('popup'),
+    page.getByRole('link', { name: 'Twitter' }).click()
+  ]);
+  await newPage.waitForLoadState();
+});
