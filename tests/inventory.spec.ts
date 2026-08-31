@@ -34,7 +34,7 @@ test('javascript popup test', async ({ page }) => {
 
 
 test('new tab openedv test', async ({ page }) => {
-  await Promise.all([
+  const [newPage] = await Promise.all([
     page.waitForEvent('popup'),
     page.getByRole('link', { name: 'Twitter' }).click()
   ]);
