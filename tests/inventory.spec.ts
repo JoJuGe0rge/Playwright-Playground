@@ -1,21 +1,15 @@
-import { test, expect } from '@playwright/test';
-import LoginPage from '../pages/loginpage';
+import { expect } from '@playwright/test';
+import { test} from '../fixtures';
 import InventoryPage from '../pages/homeProducts';
 
-test('add product to cart', async ({ page }) => {
-  const loginPage = new LoginPage(page);
-  await loginPage.login('standard_user', 'secret_sauce');
-  const inventoryPage = new InventoryPage(page);
+test('add product to cart', async ({ authenticatedPage }) => {
+  const inventoryPage = new InventoryPage(authenticatedPage);
   await inventoryPage.addToCart('Sauce Labs Backpack');
-  expect(await inventoryPage.getCartCount()).toBe('2');
+  expect(await inventoryPage.getCartCount()).toBe('1');
 });
 
-test('sort products by name', async ({ page }) => {
-  const loginPage = new LoginPage(page);
-  await loginPage.login('standard_user', 'secret_sauce');
-  //await page.pause();
-
-  const inventoryPage = new InventoryPage(page);
+test('sort products by name', async ({ authenticatedPage }) => {
+  const inventoryPage = new InventoryPage(authenticatedPage);
   await inventoryPage.sortProductsBy('Price (low to high)');
   const firstProductPrice = await inventoryPage.getNthProductPrice(0);
   console.log('First product price:', firstProductPrice);
