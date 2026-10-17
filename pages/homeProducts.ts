@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test';
+import { products } from '../test_data/products';
 
 class InventoryPage {
   private sort_Locator: ReturnType<Page['locator']>;

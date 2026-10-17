@@ -13,7 +13,7 @@ export const test = base.extend<MyFixtures>({
   },
 
   authenticatedPage: async ({ page, loginPage }, use) => {
-    await loginPage.login('standard_user', 'secret_sauce');
+    await loginPage.login(process.env.STANDARD_USER!, process.env.STANDARD_PASSWORD!  );
     await use(page);
   },
 });

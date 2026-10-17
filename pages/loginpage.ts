@@ -16,7 +16,7 @@ class LoginPage {
 
   async login(username: string, password: string)
   {
-    await this.page.goto('https://www.saucedemo.com/');
+    await this.page.goto('/');
     await this.userName_Locator.fill(username);
     await this.password_Locator.fill(password);
     await this.loginButton_Locator.click();

@@ -1,10 +1,12 @@
 import { expect } from '@playwright/test';
 import { test} from '../fixtures';
 import InventoryPage from '../pages/homeProducts';
+import products from '../test_data/products.json' with { type: 'json' };
+
 
 test('add product to cart', async ({ authenticatedPage }) => {
   const inventoryPage = new InventoryPage(authenticatedPage);
-  await inventoryPage.addToCart('Sauce Labs Backpack');
+  await inventoryPage.addToCart(products.backpack);
   expect(await inventoryPage.getCartCount()).toBe('1');
 });
 
