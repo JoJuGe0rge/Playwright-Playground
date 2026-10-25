@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { test} from '../fixtures';
-import InventoryPage from '../pages/homeProducts';
+import InventoryPage from '../pages/inventorypage';
 import products from '../test_data/products.json' with { type: 'json' };
 
 
@@ -29,10 +29,11 @@ test('javascript popup test', async ({ page }) => {
 });
 
 
-test('new tab openedv test', async ({ page }) => {
+test('new tab opened test', async ({ authenticatedPage }) => {
   const [newPage] = await Promise.all([
-    page.waitForEvent('popup'),
-    page.getByRole('link', { name: 'Twitter' }).click()
+    authenticatedPage.waitForEvent('popup'),
+    authenticatedPage.getByRole('link', { name: 'X' }).click()
   ]);
+  console.log(newPage.url());
   await newPage.waitForLoadState();
 });
