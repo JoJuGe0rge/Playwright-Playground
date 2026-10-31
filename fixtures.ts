@@ -12,8 +12,8 @@ export const test = base.extend<MyFixtures>({
     await use(new LoginPage(page));
   },
 
-  authenticatedPage: async ({ page, loginPage }, use) => {
-    await loginPage.login(process.env.STANDARD_USER!, process.env.STANDARD_PASSWORD!  );
+  authenticatedPage: async ({ page }, use) => {
+    await page.goto('/inventory.html');
     await use(page);
   },
 });
