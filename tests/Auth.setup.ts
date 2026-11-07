@@ -26,7 +26,7 @@ import envCheck from '../utils/env';
 
 test('log in to my page', async ({ page }) => {
     const login = new loginPage(page);
-    await login.login(envCheck.requireEnv('STANDARD_USERs'), envCheck.requireEnv('STANDARD_PASSWORD'));
+    await login.login(envCheck.requireEnv('STANDARD_USER'), envCheck.requireEnv('STANDARD_PASSWORD'));
     await page.context().storageState({ path: 'playwright/.auth/user.json' });
     expect(page.url()).toContain('/inventory.html');
     console.log('setup completed', loginPage);

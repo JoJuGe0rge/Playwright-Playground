@@ -41,8 +41,13 @@ export default defineConfig({
     { name: 'setup', testMatch: /.*\.setup\.ts/ },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], storageState: 'playwright/.auth/user.json' },
-      dependencies: ['setup'],
+      // your existing settings stay as they are
+      testIgnore: '**/api/**',
+    },
+    {
+      name: 'api',
+      testDir: './tests/api',
+      use: { baseURL: process.env.API_BASE_URL },
     },
 
     // {
