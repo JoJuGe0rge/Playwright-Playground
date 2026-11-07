@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import Ajv from 'ajv';
+import schema from '../../schemas/post.schema.json' with {type: 'json'};
 
 test('get a post', async ({ request }) => {
   const response = await request.get('/posts/1');
@@ -17,4 +19,29 @@ test('create a post', async ({ request }) => {
   expect(body.title).toBe('My first post');
   expect(body.body).toBe('Some randomized text');
   expect(body.userId).toBeDefined();
+});
+
+test('match a post', async ({ request }) => {
+  const response = await request.get('/posts/1');
+  expect(response.status(), 'GET /posts/1 should succeed').toBe(200);
+  const body = await response.json();
+  expect(body).toMatchObject({
+    id: expect.any(Number),
+    title: expect.any(String),
+    body: expect.any(String),
+    userId: expect.any(Number),
+  });
+});
+
+test('check against schema', async ({ request }) => {
+  const response = await request.get('/posts/1');
+  expect(response.status(), 'GET /posts/1 should succeed').toBe(200);
+
+  const body = await response.json();
+
+  const ajv = new Ajv();
+  const validate = ajv.compile(schema);
+  const valid = validate(body);
+  expect(valid, JSON.stringify(validate.errors)).toBe(true);
+
 });
