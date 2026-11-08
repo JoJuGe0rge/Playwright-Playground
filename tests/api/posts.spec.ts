@@ -35,7 +35,7 @@ test('match a post', async ({ request }) => {
 
 test('check against schema', async ({ request }) => {
   const response = await request.get('/posts/1');
-  expect(response.status(), 'GET /posts/1 should succeed').toBe(200);
+  expect(response.status(), 'GET /posts/1 should have succeeded').toBe(200);
 
   const body = await response.json();
 
@@ -44,4 +44,10 @@ test('check against schema', async ({ request }) => {
   const valid = validate(body);
   expect(valid, JSON.stringify(validate.errors)).toBe(true);
 
+});
+
+test('wrong path should return 404', async ({ request }) => {
+  const response = await request.get('/posts/999999');
+  console.log('Response body for GET /posts/999999:', await response.json());
+  expect(response.status(), 'GET /posts/999999 should return 404').toBe(404);
 });
