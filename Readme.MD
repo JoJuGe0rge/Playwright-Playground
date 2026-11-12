@@ -71,6 +71,6 @@ scratch/      Practice files, not part of the suite
 
 - API tests with Playwright
 - Reusing a saved login session across tests
-- CI pipeline in Azure DevOps
+- CI/CD pipeline in Azure DevOps
 - Reporting and logging improvements
 - Visual and accessibility testing
