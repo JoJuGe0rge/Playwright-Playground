@@ -50,6 +50,11 @@ export default defineConfig({
       use: { baseURL: process.env.API_BASE_URL },
     },
 
+    {
+      name: 'sf',
+      testDir: './tests/salesforce',
+      use: { baseURL: process.env.SF_BASE_URL },
+    },
     // {
     //   name: 'firefox',
     //   use: { ...devices['Desktop Firefox'] },
