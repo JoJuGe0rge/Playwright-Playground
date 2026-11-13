@@ -73,4 +73,4 @@ scratch/      Practice files, not part of the suite
 - Reusing a saved login session across tests
 - CI/CD pipeline in Azure DevOps
 - Reporting and logging improvements
-- Visual and accessibility testing
+- Visual testing (add-on)
