@@ -30,8 +30,6 @@ const usernames: string[] = (() => {
 
 
 
-
-
 import type { Page } from '@playwright/test';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
@@ -149,10 +147,8 @@ export async function loginToSalesforce(
 
   const frontdoorUrl = await getSalesforceFrontdoorUrl(accessToken, instanceUrl, retURL);
   console.log('Salesforce UI Bridge succeeded. Opening the requested Salesforce page...');
-  page.pause();
-
-  
-  new passwordResetPage(page).fillPasswordResetForm('NewPassword123!', 'NewPassword123!', 'MySecurityAnswer');
+  //await page.pause();
+  new passwordResetPage(page).fillPasswordResetForm(username,'Tosca@2026.11$', 'Tosca@2026.11$', 'chennai');
   console.log(`Logged in and waiting for password reset.`);
   
   const navigationStage = `waiting for ${retURL}`;
@@ -174,6 +170,7 @@ test.describe('Salesforce user access', () => {
 	for (const username of usernames) {
 		test(`logs in as ${username}`, async ({ page }) => {
 			await loginToSalesforce(page, '/lightning/o/Account/list', username);
+      //await page.pause();
       await expect(page).toHaveURL(/lightning\/o\/Account\/list/, { timeout: 30_000 });
       await expect(page).toHaveTitle(/Accounts/, { timeout: 30_000 });
 		});
