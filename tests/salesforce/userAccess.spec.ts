@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 const usernames: string[] = (() => {
-	const csvPath = new URL('../../test_data/User Export.csv', import.meta.url);
+	const csvPath = new URL('../../test_data/User Export-11_11_2026-05_00_12.csv', import.meta.url);
 	const csv = readFileSync(csvPath, 'utf-8');
 	const rows = csv
 		.split(/\r?\n/)
@@ -35,6 +35,7 @@ const usernames: string[] = (() => {
 import type { Page } from '@playwright/test';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import passwordResetPage from '../../pages/passwordreset';
 
 // Load env vars (run from the project root, where .env lives)
 dotenv.config({ path: ['.env', '.env.private-key'], quiet: true });
@@ -81,30 +82,91 @@ async function getSalesforceAccessToken(username: string): Promise<{ access_toke
   if (!response.ok) {
     throw new Error(`JWT exchange failed (HTTP ${response.status}). Check JWT expiry, audience, subject, and app authorization.`);
   }
-  const data = await response.json();
-  if (!data.access_token || !data.instance_url || new URL(data.instance_url).protocol !== 'https:') {
-    throw new Error('Salesforce did not return an access token and HTTPS instance URL.');
+
+  return response.json();
+}
+
+
+
+export async function getSalesforceFrontdoorUrl(
+  accessToken: string,
+  instanceUrl: string | URL | undefined,
+  redirectUri = '/lightning/page/home',
+) {
+  if (typeof accessToken !== 'string' || !accessToken.trim()) {
+    throw new Error('Salesforce did not return an access token.');
   }
-  return data;
+
+  let bridgeUrl;
+  try {
+    bridgeUrl = new URL('/services/oauth2/singleaccess', instanceUrl);
+    if (bridgeUrl.protocol !== 'https:') {
+      throw new Error('HTTPS required');
+    }
+  } catch {
+    throw new Error('Salesforce did not return a valid HTTPS instance URL.');
+  }
+
+  bridgeUrl.searchParams.set('redirect_uri', redirectUri);
+
+  const response = await fetch(bridgeUrl, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    redirect: 'error',
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) {
+    throw new Error(`Salesforce UI Bridge failed (HTTP ${response.status}). Check token eligibility and app/user session policies.`);
+  }
+
+  const payload = await response.json();
+  const frontdoorUri = payload?.frontdoor_uri;
+  try {
+    if (typeof frontdoorUri !== 'string' || new URL(frontdoorUri).protocol !== 'https:') {
+      throw new Error('HTTPS URL required');
+    }
+  } catch {
+    throw new Error('Salesforce UI Bridge did not return a valid HTTPS frontdoor URL.');
+  }
+  return frontdoorUri;
 }
 
 /**
  * Logs the given Playwright page into Salesforce using JWT + frontdoor.jsp.
  * Returns the org's instance URL.
  */
-export async function loginToSalesforce(page: Page, retURL = '/lightning/page/home', username: string): Promise<string> {
-  const { access_token, instance_url } = await getSalesforceAccessToken(username);
-  console.log(`JWT exchange succeeded for ${username} at ${instance_url}`); // never log the token
+export async function loginToSalesforce(
+  page: Page,
+  retURL = '/lightning/page/home',
+  username?: string,
+): Promise<string> {
+  const resolvedUsername = (username ?? process.env.SF_USERNAME)?.trim();
+  if (!resolvedUsername) {
+    throw new Error('No Salesforce username provided. Pass a username or set SF_USERNAME in the environment.');
+  }
 
-  const frontdoor = new URL('/secur/frontdoor.jsp', instance_url);
-  frontdoor.searchParams.set('sid', access_token);
-  frontdoor.searchParams.set('retURL', retURL);
+  const { access_token: accessToken, instance_url: instanceUrl } = await getSalesforceAccessToken(resolvedUsername);
+  console.log('JWT exchange succeeded. Requesting a Salesforce browser session...');
 
-  await page.goto(frontdoor.href, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-  await page.waitForURL('**/lightning/**', { timeout: 60_000 });
-  return instance_url;
+  const frontdoorUrl = await getSalesforceFrontdoorUrl(accessToken, instanceUrl, retURL);
+  console.log('Salesforce UI Bridge succeeded. Opening the requested Salesforce page...');
+  page.pause();
+
+  
+  new passwordResetPage(page).fillPasswordResetForm('NewPassword123!', 'NewPassword123!', 'MySecurityAnswer');
+  console.log(`Logged in and waiting for password reset.`);
+  
+  const navigationStage = `waiting for ${retURL}`;
+  try {
+    await page.goto(frontdoorUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.waitForURL(`**${retURL}**`, { timeout: 60_000 });
+  } catch (error: unknown) {
+    const currentUrl = new URL(page.url());
+    throw new Error(`Salesforce browser navigation failed (${(error as Error).message}) while ${navigationStage}. Current page: ${currentUrl.origin}${currentUrl.pathname}. Check SSO/MFA requirements, session policies, and Account permissions.`);
+  }
+
+  console.log(`Salesforce page reached: ${retURL}`);
+  return instanceUrl;
 }
-
 
 
 test.describe('Salesforce user access', () => {
@@ -112,8 +174,8 @@ test.describe('Salesforce user access', () => {
 	for (const username of usernames) {
 		test(`logs in as ${username}`, async ({ page }) => {
 			await loginToSalesforce(page, '/lightning/o/Account/list', username);
-            await expect(page).toHaveURL(/lightning\/o\/Account\/list/, { timeout: 30_000 });
-            await expect(page).toHaveTitle(/Accounts/, { timeout: 30_000 });
+      await expect(page).toHaveURL(/lightning\/o\/Account\/list/, { timeout: 30_000 });
+      await expect(page).toHaveTitle(/Accounts/, { timeout: 30_000 });
 		});
 	}
 });
