@@ -48,26 +48,88 @@ async function getSalesforceAccessToken(): Promise<{ access_token: string; insta
   if (!response.ok) {
     throw new Error(`JWT exchange failed (HTTP ${response.status}). Check JWT expiry, audience, subject, and app authorization.`);
   }
-  const data = await response.json();
-  if (!data.access_token || !data.instance_url || new URL(data.instance_url).protocol !== 'https:') {
-    throw new Error('Salesforce did not return an access token and HTTPS instance URL.');
-  }
-  return data;
+  return response.json()
+  // const data = await response.json();
+  // if (!data.access_token || !data.instance_url || new URL(data.instance_url).protocol !== 'https:') {
+  //   throw new Error('Salesforce did not return an access token and HTTPS instance URL.');
+  // }
+  // return data;
 }
+
+
+
+export async function getSalesforceFrontdoorUrl(accessToken, instanceUrl) {
+ if (typeof accessToken !== 'string' || !accessToken.trim()) {
+  throw new Error('Salesforce did not return an access token.');
+ }
+ let bridgeUrl;
+ try {
+  bridgeUrl = new URL('/services/oauth2/singleaccess', instanceUrl);
+  if (bridgeUrl.protocol !== 'https:') {
+   throw new Error('HTTPS required');
+  }
+ } catch {
+  throw new Error('Salesforce did not return a valid HTTPS instance URL.');
+ }
+ bridgeUrl.searchParams.set('redirect_uri', '/lightning/o/Account/list');
+
+ const response = await fetch(bridgeUrl, {
+  headers: { Authorization: `Bearer ${accessToken}` },
+  redirect: 'error',
+  signal: AbortSignal.timeout(30_000),
+ });
+ if (!response.ok) {
+  throw new Error(`Salesforce UI Bridge failed (HTTP ${response.status}). Check token eligibility and app/user session policies.`);
+ }
+
+ const payload = await response.json();
+ const frontdoorUri = payload?.frontdoor_uri;
+ try {
+  if (typeof frontdoorUri !== 'string' || new URL(frontdoorUri).protocol !== 'https:') {
+   throw new Error('HTTPS URL required');
+  }
+ } catch {
+  throw new Error('Salesforce UI Bridge did not return a valid HTTPS frontdoor URL.');
+ }
+ return frontdoorUri;
+}
+
+
+
 
 /**
  * Logs the given Playwright page into Salesforce using JWT + frontdoor.jsp.
  * Returns the org's instance URL.
  */
 export async function loginToSalesforce(page: Page, retURL = '/lightning/page/home'): Promise<string> {
-  const { access_token, instance_url } = await getSalesforceAccessToken();
-  console.log(`JWT exchange succeeded for ${instance_url}`); // never log the token
 
-  const frontdoor = new URL('/secur/frontdoor.jsp', instance_url);
-  frontdoor.searchParams.set('sid', access_token);
-  frontdoor.searchParams.set('retURL', retURL);
+ const { access_token: accessToken, instance_url: instanceUrl } = await getSalesforceAccessToken();
+ console.log('JWT exchange succeeded.. Requesting a Salesforce browser session...');
 
-  await page.goto(frontdoor.href, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-  await page.waitForURL('**/lightning/**', { timeout: 60_000 });
-  return instance_url;
-}
+ const frontdoorUrl = await getSalesforceFrontdoorUrl(accessToken, instanceUrl);
+ console.log('Salesforce UI Bridge succeeded. Opening Accounts...');
+
+  const navigationStage = 'waiting for the Accounts list URL';
+  try {
+   await page.goto(frontdoorUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+   await page.waitForURL('**/lightning/o/Account/list**', { timeout: 60_000 });
+  } catch (error: unknown) {
+   const currentUrl = new URL(page.url());
+   throw new Error(`Salesforce browser navigation failed (${(error as Error).message}) while ${navigationStage}. Current page: ${currentUrl.origin}${currentUrl.pathname}. Check SSO/MFA requirements, session policies, and Account permissions.`);
+  }
+  console.log('Accounts list URL reached.');
+  await page.waitForEvent('close', { timeout: 0 });
+ }
+
+
+
+  // const { access_token, instance_url } = await getSalesforceAccessToken();
+  // console.log(`JWT exchange succeeded for ${instance_url}`); // never log the token
+
+  // const frontdoor = new URL('/secur/frontdoor.jsp', instance_url);
+  // frontdoor.searchParams.set('sid', access_token);
+  // frontdoor.searchParams.set('retURL', retURL);
+
+  // await page.goto(frontdoor.href, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+  // await page.waitForURL('**/lightning/**', { timeout: 60_000 });
+  // return instance_url;
