@@ -67,6 +67,11 @@ scratch/      Practice files, not part of the suite
 - Add to cart, cart count, sorting by price
 - Checkout form filled with generated, seedable data
 
+
+## Running in Docker
+Dockerfile exists and that it’s validated in the pipeline
+
+
 ## Planned
 
 - API tests with Playwright
