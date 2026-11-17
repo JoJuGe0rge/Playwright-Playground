@@ -9,9 +9,9 @@ import type { Page,Locator } from '@playwright/test';
 
     constructor(page: Page) {
         this.page = page;
-        this.newPassword = page.getByRole('textbox', { name: '* New Password' });
-        this.confirmPassword = page.getByRole('textbox', { name: '* Confirm New Password' });
-        this.securityAnswer = page.getByRole('textbox', { name: '* New Answer' });
+        this.newPassword = page.getByRole('textbox', { name: '* New Password' });
+        this.confirmPassword = page.getByRole('textbox', { name: '* Confirm New Password' });
+        this.securityAnswer = page.getByRole('textbox', { name: '* New Answer' });
         this.changePasswordButton = page.getByRole('button', { name: 'Change Password' });
     }
 
@@ -26,12 +26,22 @@ import type { Page,Locator } from '@playwright/test';
     // } 
 
 
-    async fillPasswordResetForm(user: string | undefined, newPassword: string, confirmPassword: string, securityAnswer: string) {     
-      if (await this.newPassword.count() > 0) {
+    async fillPasswordResetForm(user: string | undefined, newPassword: string, confirmPassword: string, securityAnswer: string) { 
+      
+      const newPasswordPresent = await this.newPassword
+        .waitFor({ state: 'visible', timeout: 15000 })
+        .then(() => true)
+        .catch(() => false);
+
+      if (newPasswordPresent) {
         // newPassword=confirmPassword= await this.generatePassword();
-        await this.newPassword.fill(newPassword);
-        await this.confirmPassword.fill(confirmPassword);
-        await this.securityAnswer.fill(securityAnswer);
+        console.log('Field count:', await this.newPassword.count());
+        await this.page.waitForTimeout(5000);
+        await this.newPassword.pressSequentially(newPassword);
+        await this.confirmPassword.pressSequentially(confirmPassword);
+        if (await this.securityAnswer.count() > 0) {
+          await this.securityAnswer.pressSequentially(securityAnswer);
+        }
         await this.changePasswordButton.click();
       }
     }

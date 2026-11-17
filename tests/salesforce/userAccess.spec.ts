@@ -147,13 +147,13 @@ export async function loginToSalesforce(
 
   const frontdoorUrl = await getSalesforceFrontdoorUrl(accessToken, instanceUrl, retURL);
   console.log('Salesforce UI Bridge succeeded. Opening the requested Salesforce page...');
-  //await page.pause();
-  new passwordResetPage(page).fillPasswordResetForm(username,'Tosca@2026.11$', 'Tosca@2026.11$', 'chennai');
-  console.log(`Logged in and waiting for password reset.`);
   
   const navigationStage = `waiting for ${retURL}`;
   try {
     await page.goto(frontdoorUrl, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    //await page.pause();  
+    await new passwordResetPage(page).fillPasswordResetForm(username,'Tosca@2026.11$', 'Tosca@2026.11$', 'chennai');
+    console.log(`Logged in and waiting for password reset.`);
     await page.waitForURL(`**${retURL}**`, { timeout: 60_000 });
   } catch (error: unknown) {
     const currentUrl = new URL(page.url());
