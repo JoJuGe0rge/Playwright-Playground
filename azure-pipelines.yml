@@ -10,5 +10,23 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-  - script: echo "Hello from the pipeline"
-    displayName: Say hello
+  - task: UseNode@1
+    inputs:
+      version: '22.x'
+    displayName: Install Node.js
+
+  - script: npm ci
+    displayName: Install packages
+
+  - script: npx playwright install --with-deps chromium
+    displayName: Install browser
+
+  - script: npx playwright test
+    displayName: Run tests
+    env:
+      CI: 'true'
+      BASE_URL: https://www.saucedemo.com
+      API_BASE_URL: https://jsonplaceholder.typicode.com
+      STANDARD_USER: standard_user
+      STANDARD_PASSWORD: $(STANDARD_PASSWORD)
+      API_TOKEN: $(API_TOKEN)
