@@ -21,7 +21,7 @@ steps:
   - script: npx playwright install --with-deps chromium
     displayName: Install browser
 
-  - script: npx playwright test --project=api --project=chromium
+  - script: npx playwright test --project=api
     displayName: Run tests
     env:
       CI: 'true'
