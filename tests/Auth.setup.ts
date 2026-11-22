@@ -29,5 +29,5 @@ test('log in to my page', async ({ page }) => {
     await login.login(envCheck.requireEnv('STANDARD_USER'), envCheck.requireEnv('STANDARD_PASSWORD'));
     await page.context().storageState({ path: 'playwright/.auth/user.json' });
     expect(page.url()).toContain('/inventory.html');
-    console.log('setup completed', loginPage);
+    console.log('setup completed -> AUTHstate stored', loginPage);
 });

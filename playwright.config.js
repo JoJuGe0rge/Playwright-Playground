@@ -40,15 +40,14 @@ export default defineConfig({
   projects: [
     { name: 'setup', testMatch: /.*\.setup\.ts/ },
     {
-      name: 'chromium',
-      // your existing settings stay as they are
-      testIgnore: '**/api/**',
+    name: 'chromium',
+    testIgnore: ['**/api/**', '**/salesforce/**'],
+    use: {
+      ...devices['Desktop Chrome'],
+      baseURL: process.env.BASE_URL,
+      storageState: 'playwright/.auth/user.json',
     },
-    {
-      name: 'learn',
-      // your existing settings stay as they are
-      testIgnore: '**/salesforce/**',
-      use: { baseURL: process.env.LEARN_BASE_URL },
+    dependencies: ['setup'],      
     },
     {
       name: 'api',

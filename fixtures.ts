@@ -13,6 +13,7 @@ export const test = base.extend<MyFixtures>({
   },
 
   authenticatedPage: async ({ page }, use) => {
+    await page.pause();
     await page.goto('/inventory.html');
     await use(page);
   },
