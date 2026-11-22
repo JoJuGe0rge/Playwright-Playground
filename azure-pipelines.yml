@@ -5,6 +5,8 @@
 
 trigger:
   - main
+pr:
+  - main
 
 pool:
   vmImage: ubuntu-latest
@@ -30,3 +32,11 @@ steps:
       STANDARD_USER: standard_user
       STANDARD_PASSWORD: $(STANDARD_PASSWORD)
       API_TOKEN: $(API_TOKEN)
+
+  - task: PublishPipelineArtifact@1
+    condition: always()
+    displayName: Publish Playwright report
+    inputs:
+      targetPath: playwright-report
+      artifact: playwright-report
+      publishLocation: pipeline
