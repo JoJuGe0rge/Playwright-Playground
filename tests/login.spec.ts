@@ -7,7 +7,7 @@ test('login to Swag labs', async ({ page }) => {
   await loginPage.login('standard_user', 'secret_sauce');
   await expect(page).toHaveURL('https://www.saucedemo.com/inventory.html');
 
-  console.log("user:" , process.env.SF_USERNAME);
+  console.log("direct login completed without using storage state");
 });
 
 
