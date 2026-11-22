@@ -48,6 +48,7 @@ export default defineConfig({
       name: 'learn',
       // your existing settings stay as they are
       testIgnore: '**/salesforce/**',
+      use: { baseURL: process.env.LEARN_BASE_URL },
     },
     {
       name: 'api',
