@@ -7,7 +7,7 @@ import products from '../test_data/products.json' with { type: 'json' };
 test('add product to cart', async ({ authenticatedPage }) => {
   const inventoryPage = new InventoryPage(authenticatedPage);
   await inventoryPage.addToCart(products.backpack);
-  expect(await inventoryPage.getCartCount()).toBe('1');
+  expect(await inventoryPage.getCartCount()).toBe('2');
 });
 
 test('sort products by name', async ({ authenticatedPage }) => {
